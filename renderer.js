@@ -142,7 +142,7 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-document.getElementById('closeBtn').addEventListener('click', () => ord.hideWindow());
+document.getElementById('closeBtn').addEventListener('click', () => ord.quitApp());
 document.getElementById('minimizeBtn').addEventListener('click', () => ord.hideWindow());
 
 document.getElementById('pasteHint').addEventListener('click', async () => {

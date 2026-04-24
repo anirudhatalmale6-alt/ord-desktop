@@ -96,7 +96,7 @@ function createWindow() {
     y: screenH - 580,
     frame: false,
     resizable: true,
-    skipTaskbar: true,
+    skipTaskbar: false,
     show: false,
     alwaysOnTop: true,
     webPreferences: {
@@ -108,9 +108,9 @@ function createWindow() {
 
   mainWindow.loadFile('renderer.html');
 
-  mainWindow.on('close', (e) => {
-    e.preventDefault();
-    mainWindow.hide();
+  mainWindow.on('close', () => {
+    mainWindow = null;
+    app.quit();
   });
 
   mainWindow.on('blur', () => {
@@ -223,7 +223,12 @@ ipcMain.handle('load-settings', () => {
 });
 
 ipcMain.handle('hide-window', () => {
-  if (mainWindow) mainWindow.hide();
+  if (mainWindow) mainWindow.minimize();
+  return true;
+});
+
+ipcMain.handle('quit-app', () => {
+  app.quit();
   return true;
 });
 
