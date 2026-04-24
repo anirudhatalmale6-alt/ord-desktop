@@ -1,0 +1,40 @@
+{
+  "name": "ord-desktop",
+  "version": "1.0.0",
+  "description": "Ord - AI Writing Assistant Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-win": "electron-builder --win portable",
+    "build-linux": "electron-builder --linux AppImage",
+    "build-mac": "electron-builder --mac dmg"
+  },
+  "build": {
+    "appId": "se.skylarkmedia.ord",
+    "productName": "Ord",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.html",
+      "renderer.js",
+      "style.css",
+      "tray-icon.png"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "tray-icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "tray-icon.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "tray-icon.png"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
