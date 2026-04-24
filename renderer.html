@@ -122,6 +122,35 @@
         <button class="btn" id="formalBtn">Formal</button>
         <button class="btn" id="casualBtn">Casual</button>
       </div>
+      <div class="toolbar translate-bar">
+        <button class="btn btn-translate" id="translateBtn">Translate</button>
+        <span style="font-size:12px;color:#64748b;white-space:nowrap">to:</span>
+        <select class="lang-select" id="targetLangSelect">
+          <option value="sv">Svenska</option>
+          <option value="en" selected>English</option>
+          <option value="no">Norsk</option>
+          <option value="da">Dansk</option>
+          <option value="fi">Suomi</option>
+          <option value="de">Deutsch</option>
+          <option value="fr">Francais</option>
+          <option value="es">Espanol</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Portugues</option>
+          <option value="nl">Nederlands</option>
+          <option value="pl">Polski</option>
+          <option value="ar">Arabic</option>
+          <option value="zh">Chinese</option>
+          <option value="ja">Japanese</option>
+          <option value="ko">Korean</option>
+          <option value="ru">Russian</option>
+          <option value="tr">Turkish</option>
+          <option value="hi">Hindi</option>
+          <option value="ur">Urdu</option>
+          <option value="pa">Punjabi</option>
+          <option value="phr">Pahari</option>
+          <option value="prs">Dari</option>
+        </select>
+      </div>
       <div class="results" id="results"></div>
       <div class="score-bar" id="scoreBar" style="display:none">
         <span class="score-label">Quality</span>
@@ -198,10 +227,9 @@
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0">
           <p style="line-height:1.6"><strong>How to use:</strong></p>
           <p style="line-height:1.6">1. Select text in any application (Word, email, browser)</p>
-          <p style="line-height:1.6">2. Copy it (Ctrl+C)</p>
-          <p style="line-height:1.6">3. Press Ctrl+Shift+G or click "Check"</p>
-          <p style="line-height:1.6">4. Click "Copy to Clipboard" to get corrected text</p>
-          <p style="line-height:1.6">5. Paste back (Ctrl+V) into your application</p>
+          <p style="line-height:1.6">2. Press Ctrl+Shift+G to check or Ctrl+Shift+R to rephrase</p>
+          <p style="line-height:1.6">3. Click "Copy to Clipboard" to get corrected text</p>
+          <p style="line-height:1.6">4. Paste back (Ctrl+V) into your application</p>
         </div>
       </div>
     </div>

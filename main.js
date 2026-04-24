@@ -137,12 +137,37 @@ function registerShortcuts() {
   globalShortcut.register('CommandOrControl+Shift+R', () => triggerAction('rephrase'));
 }
 
+async function captureSelectedText() {
+  const { execSync } = require('child_process');
+  const fs = require('fs');
+  try {
+    if (process.platform === 'win32') {
+      const vbsPath = path.join(app.getPath('temp'), 'ord-copy.vbs');
+      fs.writeFileSync(vbsPath, 'Set WshShell = CreateObject("WScript.Shell")\nWshShell.SendKeys "^c"\n');
+      execSync(`cscript //NoLogo "${vbsPath}"`, { windowsHide: true, timeout: 2000 });
+    } else if (process.platform === 'linux') {
+      try {
+        const selected = execSync('xclip -selection primary -o 2>/dev/null', { encoding: 'utf-8', timeout: 1000 }).trim();
+        if (selected) clipboard.writeText(selected);
+        return;
+      } catch {
+        try { execSync('xdotool key ctrl+c', { windowsHide: true, timeout: 1000 }); } catch {}
+      }
+    } else if (process.platform === 'darwin') {
+      execSync('osascript -e \'tell application "System Events" to keystroke "c" using command down\'', { timeout: 2000 });
+    }
+    await new Promise(r => setTimeout(r, 200));
+  } catch {}
+}
+
 async function triggerCheck() {
+  await captureSelectedText();
   showWindow();
   mainWindow.webContents.send('start-action', 'check');
 }
 
 async function triggerAction(action) {
+  await captureSelectedText();
   showWindow();
   mainWindow.webContents.send('start-action', action);
 }
@@ -208,6 +233,15 @@ ipcMain.handle('rephrase', async (_, text, language, style) => {
   if (!apiKey) return { error: 'API key not set. Open Settings to configure.' };
   try {
     return await apiRequest('/rephrase', { text, language, style });
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+ipcMain.handle('translate', async (_, text, language, targetLanguage) => {
+  if (!apiKey) return { error: 'Not logged in' };
+  try {
+    return await apiRequest('/translate', { text, language, targetLanguage });
   } catch (e) {
     return { error: e.message };
   }

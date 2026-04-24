@@ -640,3 +640,68 @@ body {
 }
 .toggle-switch input:checked + .toggle-slider { background: #3b82f6; }
 .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+/* ─── Main App flex layout (scroll fix) ─── */
+#mainApp {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Translate bar ─── */
+.translate-bar {
+  padding-top: 0;
+  align-items: center;
+}
+
+.btn-translate {
+  background: #8b5cf6;
+  color: #fff;
+  border-color: #8b5cf6;
+}
+
+.btn-translate:hover {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.translate-result {
+  padding: 4px 0;
+}
+
+.translate-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.translate-text {
+  background: #faf5ff;
+  border: 1px solid #d8b4fe;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #581c87;
+  margin-bottom: 8px;
+}
+
+/* ─── RTL support ─── */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.rtl .text-input {
+  direction: rtl;
+  text-align: right;
+}
+
+.translate-text.rtl,
+.rephrase-text.rtl {
+  direction: rtl;
+  text-align: right;
+}

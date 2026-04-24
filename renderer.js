@@ -1,6 +1,11 @@
 let lastCorrected = '';
 let lastRephrased = '';
+let lastTranslated = '';
 let loggedInUser = null;
+
+const RTL_LANGS = ['ar', 'ur', 'prs'];
+
+function isRtl(lang) { return RTL_LANGS.includes(lang); }
 
 // ─── Init ───
 async function init() {
@@ -25,7 +30,7 @@ function showRegisterView() {
 
 function showMainApp() {
   hideAll();
-  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('mainApp').style.display = 'flex';
   document.getElementById('view-checker').classList.add('active');
   document.querySelector('[data-view="checker"]').classList.add('active');
 
@@ -42,6 +47,7 @@ function showMainApp() {
   const storedLang = localStorage.getItem('ord-lang') || 'en';
   document.getElementById('settingsLang').value = storedLang;
   document.getElementById('langSelect').value = storedLang;
+  updateRtl();
 
   ord.getAutoStart().then(enabled => {
     document.getElementById('autoStartToggle').checked = enabled;
@@ -52,6 +58,16 @@ function hideAll() {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('mainApp').style.display = 'none';
+}
+
+function updateRtl() {
+  const lang = document.getElementById('langSelect').value;
+  const textInput = document.getElementById('textInput');
+  if (isRtl(lang)) {
+    textInput.classList.add('rtl');
+  } else {
+    textInput.classList.remove('rtl');
+  }
 }
 
 // ─── Login ───
@@ -158,9 +174,12 @@ document.getElementById('checkBtn').addEventListener('click', () => doCheck());
 document.getElementById('rephraseBtn').addEventListener('click', () => doRephrase('rephrase'));
 document.getElementById('formalBtn').addEventListener('click', () => doRephrase('formal'));
 document.getElementById('casualBtn').addEventListener('click', () => doRephrase('casual'));
+document.getElementById('translateBtn').addEventListener('click', () => doTranslate());
+
+document.getElementById('langSelect').addEventListener('change', updateRtl);
 
 document.getElementById('applyBtn').addEventListener('click', async () => {
-  const text = lastCorrected || lastRephrased;
+  const text = lastCorrected || lastRephrased || lastTranslated;
   if (text) {
     await ord.setClipboard(text);
     showToast('Copied! Paste with Ctrl+V');
@@ -168,7 +187,7 @@ document.getElementById('applyBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('copyBtn').addEventListener('click', async () => {
-  const text = lastCorrected || lastRephrased;
+  const text = lastCorrected || lastRephrased || lastTranslated;
   if (text) {
     await ord.setClipboard(text);
     showToast('Copied to clipboard!');
@@ -184,6 +203,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   const lang = document.getElementById('settingsLang').value;
   document.getElementById('langSelect').value = lang;
   localStorage.setItem('ord-lang', lang);
+  updateRtl();
   showToast('Settings saved!');
 });
 
@@ -228,6 +248,7 @@ async function doCheck() {
   const data = resp.result;
   lastCorrected = data.corrected || text;
   lastRephrased = '';
+  lastTranslated = '';
   showCheckResults(data);
 }
 
@@ -247,12 +268,40 @@ async function doRephrase(style) {
   const data = resp.result;
   lastRephrased = data.rephrased || '';
   lastCorrected = '';
-  showRephraseResult(data);
+  lastTranslated = '';
+  showRephraseResult(data, lang);
 }
 
-function showLoading() {
+async function doTranslate() {
+  const text = document.getElementById('textInput').value.trim();
+  if (!text || text.length < 3) return;
+
+  const sourceLang = document.getElementById('langSelect').value;
+  const targetLang = document.getElementById('targetLangSelect').value;
+
+  if (sourceLang === targetLang) {
+    showError('Source and target languages are the same');
+    return;
+  }
+
+  showLoading('Translating...');
+  const resp = await ord.translate(text, sourceLang, targetLang);
+
+  if (resp.error) {
+    showError(resp.error);
+    return;
+  }
+
+  const data = resp.result;
+  lastTranslated = data.translated || '';
+  lastCorrected = '';
+  lastRephrased = '';
+  showTranslateResult(data, targetLang);
+}
+
+function showLoading(msg) {
   const results = document.getElementById('results');
-  results.innerHTML = '<div class="loading"><div class="spinner"></div><span>Analyzing...</span></div>';
+  results.innerHTML = '<div class="loading"><div class="spinner"></div><span>' + esc(msg || 'Analyzing...') + '</span></div>';
   document.getElementById('scoreBar').style.display = 'none';
   document.getElementById('actionBar').style.display = 'none';
 }
@@ -302,16 +351,31 @@ function showCheckResults(data) {
   `;
 }
 
-function showRephraseResult(data) {
+function showRephraseResult(data, lang) {
   const results = document.getElementById('results');
   document.getElementById('scoreBar').style.display = 'none';
   document.getElementById('actionBar').style.display = 'flex';
 
+  const rtlClass = isRtl(lang) ? ' rtl' : '';
   results.innerHTML = `
     <div class="rephrase-result">
       <div class="rephrase-label">Rephrased:</div>
-      <div class="rephrase-text">${esc(data.rephrased)}</div>
+      <div class="rephrase-text${rtlClass}">${esc(data.rephrased)}</div>
       ${data.changes ? `<div class="rephrase-changes">${esc(data.changes)}</div>` : ''}
+    </div>
+  `;
+}
+
+function showTranslateResult(data, targetLang) {
+  const results = document.getElementById('results');
+  document.getElementById('scoreBar').style.display = 'none';
+  document.getElementById('actionBar').style.display = 'flex';
+
+  const rtlClass = isRtl(targetLang) ? ' rtl' : '';
+  results.innerHTML = `
+    <div class="translate-result">
+      <div class="translate-label">${esc(data.sourceLang || '')} &rarr; ${esc(data.targetLang || '')}</div>
+      <div class="translate-text${rtlClass}">${esc(data.translated)}</div>
     </div>
   `;
 }

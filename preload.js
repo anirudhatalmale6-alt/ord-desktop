@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('ord', {
   setClipboard: (text) => ipcRenderer.invoke('set-clipboard', text),
   checkGrammar: (text, lang) => ipcRenderer.invoke('check-grammar', text, lang),
   rephrase: (text, lang, style) => ipcRenderer.invoke('rephrase', text, lang, style),
+  translate: (text, lang, targetLang) => ipcRenderer.invoke('translate', text, lang, targetLang),
   saveSettings: (s) => ipcRenderer.invoke('save-settings', s),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
