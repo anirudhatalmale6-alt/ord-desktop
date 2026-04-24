@@ -18,71 +18,82 @@
     </div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" data-view="checker">Check</button>
-    <button class="tab" data-view="settings">Settings</button>
-  </div>
-
-  <!-- Checker View -->
-  <div class="view active" id="view-checker">
-    <div class="paste-hint" id="pasteHint">Click here to paste text from clipboard</div>
-    <div class="input-section">
-      <label>Text to check</label>
-      <textarea class="text-input" id="textInput" placeholder="Type or paste text here, or select text in any app and press Ctrl+Shift+G..."></textarea>
-    </div>
-    <div class="toolbar">
-      <select class="lang-select" id="langSelect">
-        <option value="sv">Svenska</option>
-        <option value="en" selected>English</option>
-        <option value="no">Norsk</option>
-        <option value="da">Dansk</option>
-        <option value="fi">Suomi</option>
-        <option value="de">Deutsch</option>
-        <option value="fr">Francais</option>
-        <option value="es">Espanol</option>
-        <option value="it">Italiano</option>
-        <option value="pt">Portugues</option>
-        <option value="nl">Nederlands</option>
-        <option value="pl">Polski</option>
-        <option value="ar">Arabic</option>
-        <option value="zh">Chinese</option>
-        <option value="ja">Japanese</option>
-        <option value="ko">Korean</option>
-        <option value="ru">Russian</option>
-        <option value="tr">Turkish</option>
-        <option value="hi">Hindi</option>
-        <option value="pa">Punjabi</option>
-        <option value="phr">Pahari</option>
-        <option value="prs">Dari</option>
-      </select>
-      <button class="btn btn-primary" id="checkBtn">Check</button>
-      <button class="btn" id="rephraseBtn">Rephrase</button>
-      <button class="btn" id="formalBtn">Formal</button>
-      <button class="btn" id="casualBtn">Casual</button>
-    </div>
-    <div class="results" id="results"></div>
-    <div class="score-bar" id="scoreBar" style="display:none">
-      <span class="score-label">Quality</span>
-      <div class="score-track"><div class="score-fill" id="scoreFill"></div></div>
-      <span class="score-value" id="scoreValue">--</span>
-    </div>
-    <div class="action-bar" id="actionBar" style="display:none">
-      <button class="btn btn-success" id="applyBtn">Apply Correction</button>
-      <button class="btn" id="copyBtn">Copy to Clipboard</button>
-    </div>
-  </div>
-
-  <!-- Settings View -->
-  <div class="view" id="view-settings">
-    <div class="settings-form">
-      <div class="form-group">
-        <label>Ord API Key</label>
-        <input type="password" id="settingsApiKey" placeholder="ord_...">
-        <p class="hint">Get from skylarkmedia.se/ord dashboard</p>
+  <!-- Login View -->
+  <div class="view" id="view-login">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-logo">O</div>
+        <h2>Welcome to Ord</h2>
+        <p class="login-subtitle">Sign in to your account</p>
       </div>
-      <div class="form-group">
-        <label>Default Language</label>
-        <select id="settingsLang">
+      <div class="login-form">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+        </div>
+        <div class="login-error" id="loginError" style="display:none"></div>
+        <button class="btn btn-primary" id="loginBtn" style="width:100%">Sign In</button>
+        <div class="login-divider"><span>or</span></div>
+        <button class="btn" id="showRegisterBtn" style="width:100%">Create Account</button>
+      </div>
+      <p class="login-footer">skylarkmedia.se/ord</p>
+    </div>
+  </div>
+
+  <!-- Register View -->
+  <div class="view" id="view-register">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-logo">O</div>
+        <h2>Create Account</h2>
+        <p class="login-subtitle">Start using Ord for free</p>
+      </div>
+      <div class="login-form">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="registerName" placeholder="Your name">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="registerEmail" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="registerPassword" placeholder="Choose password (min 6 characters)" autocomplete="new-password">
+        </div>
+        <div class="login-error" id="registerError" style="display:none"></div>
+        <button class="btn btn-primary" id="registerBtn" style="width:100%">Create Account</button>
+        <div class="login-divider"><span>or</span></div>
+        <button class="btn" id="showLoginBtn" style="width:100%">Back to Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App (shown after login) -->
+  <div id="mainApp" style="display:none">
+    <div class="user-bar" id="userBar">
+      <span class="user-info" id="userInfo"></span>
+      <button class="btn btn-sm" id="logoutBtn">Sign Out</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-view="checker">Check</button>
+      <button class="tab" data-view="settings">Settings</button>
+    </div>
+
+    <!-- Checker View -->
+    <div class="view active" id="view-checker">
+      <div class="paste-hint" id="pasteHint">Click here to paste text from clipboard</div>
+      <div class="input-section">
+        <label>Text to check</label>
+        <textarea class="text-input" id="textInput" placeholder="Type or paste text here, or select text in any app and press Ctrl+Shift+G..."></textarea>
+      </div>
+      <div class="toolbar">
+        <select class="lang-select" id="langSelect">
           <option value="sv">Svenska</option>
           <option value="en" selected>English</option>
           <option value="no">Norsk</option>
@@ -106,26 +117,82 @@
           <option value="phr">Pahari</option>
           <option value="prs">Dari</option>
         </select>
+        <button class="btn btn-primary" id="checkBtn">Check</button>
+        <button class="btn" id="rephraseBtn">Rephrase</button>
+        <button class="btn" id="formalBtn">Formal</button>
+        <button class="btn" id="casualBtn">Casual</button>
       </div>
-      <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%">Save Settings</button>
+      <div class="results" id="results"></div>
+      <div class="score-bar" id="scoreBar" style="display:none">
+        <span class="score-label">Quality</span>
+        <div class="score-track"><div class="score-fill" id="scoreFill"></div></div>
+        <span class="score-value" id="scoreValue">--</span>
+      </div>
+      <div class="action-bar" id="actionBar" style="display:none">
+        <button class="btn btn-success" id="applyBtn">Apply Correction</button>
+        <button class="btn" id="copyBtn">Copy to Clipboard</button>
+      </div>
     </div>
-    <div class="shortcut-info">
-      <div style="font-weight:600;margin-bottom:8px;color:#334155">Keyboard Shortcuts</div>
-      <div class="shortcut-row">
-        <span>Check grammar</span>
-        <span><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">G</span></span>
+
+    <!-- Settings View -->
+    <div class="view" id="view-settings">
+      <div class="settings-form">
+        <div class="form-group">
+          <label>API Key</label>
+          <div class="apikey-display" id="apiKeyDisplay">Loading...</div>
+          <p class="hint">Your API key is linked to your account</p>
+        </div>
+        <div class="form-group">
+          <label>Plan</label>
+          <div class="plan-badge" id="planBadge">Free</div>
+        </div>
+        <div class="form-group">
+          <label>Default Language</label>
+          <select id="settingsLang">
+            <option value="sv">Svenska</option>
+            <option value="en" selected>English</option>
+            <option value="no">Norsk</option>
+            <option value="da">Dansk</option>
+            <option value="fi">Suomi</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Francais</option>
+            <option value="es">Espanol</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Portugues</option>
+            <option value="nl">Nederlands</option>
+            <option value="pl">Polski</option>
+            <option value="ar">Arabic</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="ru">Russian</option>
+            <option value="tr">Turkish</option>
+            <option value="hi">Hindi</option>
+            <option value="pa">Punjabi</option>
+            <option value="phr">Pahari</option>
+            <option value="prs">Dari</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="saveSettingsBtn" style="width:100%">Save Settings</button>
       </div>
-      <div class="shortcut-row">
-        <span>Rephrase</span>
-        <span><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">R</span></span>
-      </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0">
-        <p style="line-height:1.6"><strong>How to use:</strong></p>
-        <p style="line-height:1.6">1. Select text in any application (Word, email, browser)</p>
-        <p style="line-height:1.6">2. Copy it (Ctrl+C)</p>
-        <p style="line-height:1.6">3. Press Ctrl+Shift+G or click "Check"</p>
-        <p style="line-height:1.6">4. Click "Copy to Clipboard" to get corrected text</p>
-        <p style="line-height:1.6">5. Paste back (Ctrl+V) into your application</p>
+      <div class="shortcut-info">
+        <div style="font-weight:600;margin-bottom:8px;color:#334155">Keyboard Shortcuts</div>
+        <div class="shortcut-row">
+          <span>Check grammar</span>
+          <span><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">G</span></span>
+        </div>
+        <div class="shortcut-row">
+          <span>Rephrase</span>
+          <span><span class="key">Ctrl</span> + <span class="key">Shift</span> + <span class="key">R</span></span>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0">
+          <p style="line-height:1.6"><strong>How to use:</strong></p>
+          <p style="line-height:1.6">1. Select text in any application (Word, email, browser)</p>
+          <p style="line-height:1.6">2. Copy it (Ctrl+C)</p>
+          <p style="line-height:1.6">3. Press Ctrl+Shift+G or click "Check"</p>
+          <p style="line-height:1.6">4. Click "Copy to Clipboard" to get corrected text</p>
+          <p style="line-height:1.6">5. Paste back (Ctrl+V) into your application</p>
+        </div>
       </div>
     </div>
   </div>

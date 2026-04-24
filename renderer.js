@@ -1,10 +1,142 @@
 let lastCorrected = '';
 let lastRephrased = '';
+let loggedInUser = null;
 
+// ─── Init ───
+async function init() {
+  const session = await ord.getSession();
+  if (session && session.user) {
+    loggedInUser = session.user;
+    showMainApp();
+  } else {
+    showLoginView();
+  }
+}
+
+function showLoginView() {
+  hideAll();
+  document.getElementById('view-login').classList.add('active');
+}
+
+function showRegisterView() {
+  hideAll();
+  document.getElementById('view-register').classList.add('active');
+}
+
+function showMainApp() {
+  hideAll();
+  document.getElementById('mainApp').style.display = 'block';
+  document.getElementById('view-checker').classList.add('active');
+  document.querySelector('[data-view="checker"]').classList.add('active');
+
+  const userInfo = document.getElementById('userInfo');
+  userInfo.textContent = loggedInUser.name || loggedInUser.email;
+
+  const badge = document.getElementById('planBadge');
+  badge.textContent = (loggedInUser.plan || 'free').toUpperCase();
+  badge.className = 'plan-badge plan-' + (loggedInUser.plan || 'free');
+
+  const apiKeyEl = document.getElementById('apiKeyDisplay');
+  apiKeyEl.textContent = loggedInUser.api_key || '';
+
+  const storedLang = localStorage.getItem('ord-lang') || 'en';
+  document.getElementById('settingsLang').value = storedLang;
+  document.getElementById('langSelect').value = storedLang;
+}
+
+function hideAll() {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('mainApp').style.display = 'none';
+}
+
+// ─── Login ───
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!email || !password) {
+    errEl.textContent = 'Please enter email and password';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginBtn').textContent = 'Signing in...';
+
+  const resp = await ord.login(email, password);
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Sign In';
+
+  if (resp.error) {
+    errEl.textContent = resp.error;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  loggedInUser = resp.user;
+  showMainApp();
+}
+
+// ─── Register ───
+document.getElementById('registerBtn').addEventListener('click', doRegister);
+document.getElementById('registerPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') doRegister(); });
+
+async function doRegister() {
+  const name = document.getElementById('registerName').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
+  const password = document.getElementById('registerPassword').value;
+  const errEl = document.getElementById('registerError');
+  errEl.style.display = 'none';
+
+  if (!email || !password) {
+    errEl.textContent = 'Please enter email and password';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('registerBtn').disabled = true;
+  document.getElementById('registerBtn').textContent = 'Creating account...';
+
+  const resp = await ord.register(name, email, password);
+  document.getElementById('registerBtn').disabled = false;
+  document.getElementById('registerBtn').textContent = 'Create Account';
+
+  if (resp.error) {
+    errEl.textContent = resp.error;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  loggedInUser = resp.user;
+  showMainApp();
+}
+
+// ─── Navigation ───
+document.getElementById('showRegisterBtn').addEventListener('click', showRegisterView);
+document.getElementById('showLoginBtn').addEventListener('click', showLoginView);
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await ord.logout();
+  loggedInUser = null;
+  showLoginView();
+});
+
+// ─── Tabs ───
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('#mainApp .view').forEach(v => v.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('view-' + tab.dataset.view).classList.add('active');
   });
@@ -40,34 +172,17 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
 });
 
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-  const apiKey = document.getElementById('settingsApiKey').value.trim();
   const lang = document.getElementById('settingsLang').value;
-  await ord.saveSettings({ apiKey });
   document.getElementById('langSelect').value = lang;
   localStorage.setItem('ord-lang', lang);
-  localStorage.setItem('ord-apikey', apiKey);
   showToast('Settings saved!');
 });
 
-async function loadSettings() {
-  const saved = await ord.loadSettings();
-  const storedKey = localStorage.getItem('ord-apikey') || '';
-  const storedLang = localStorage.getItem('ord-lang') || 'en';
-
-  const apiKey = saved.apiKey || storedKey;
-  if (apiKey) {
-    document.getElementById('settingsApiKey').value = apiKey;
-    await ord.saveSettings({ apiKey });
-  }
-  document.getElementById('settingsLang').value = storedLang;
-  document.getElementById('langSelect').value = storedLang;
-}
-
-loadSettings();
-
+// ─── Actions ───
 ord.onStartAction(async (action) => {
+  if (!loggedInUser) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('#mainApp .view').forEach(v => v.classList.remove('active'));
   document.querySelector('[data-view="checker"]').classList.add('active');
   document.getElementById('view-checker').classList.add('active');
 
@@ -81,8 +196,9 @@ ord.onStartAction(async (action) => {
 });
 
 ord.onShowSettings(() => {
+  if (!loggedInUser) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('#mainApp .view').forEach(v => v.classList.remove('active'));
   document.querySelector('[data-view="settings"]').classList.add('active');
   document.getElementById('view-settings').classList.add('active');
 });
@@ -203,3 +319,5 @@ function showToast(msg) {
   toast.style.display = 'block';
   setTimeout(() => { toast.style.display = 'none'; }, 2000);
 }
+
+init();
