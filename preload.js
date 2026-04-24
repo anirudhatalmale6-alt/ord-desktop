@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('ord', {
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   hideWindow: () => ipcRenderer.invoke('hide-window'),
   quitApp: () => ipcRenderer.invoke('quit-app'),
+  getAutoStart: () => ipcRenderer.invoke('get-auto-start'),
+  setAutoStart: (enabled) => ipcRenderer.invoke('set-auto-start', enabled),
   login: (email, password) => ipcRenderer.invoke('login', email, password),
   register: (name, email, password) => ipcRenderer.invoke('register', name, email, password),
   logout: () => ipcRenderer.invoke('logout'),

@@ -232,6 +232,15 @@ ipcMain.handle('quit-app', () => {
   return true;
 });
 
+ipcMain.handle('get-auto-start', () => {
+  return app.getLoginItemSettings().openAtLogin;
+});
+
+ipcMain.handle('set-auto-start', (_, enabled) => {
+  app.setLoginItemSettings({ openAtLogin: enabled });
+  return true;
+});
+
 function apiGet(endpoint, token) {
   return new Promise((resolve, reject) => {
     const url = new URL(API_BASE + endpoint);

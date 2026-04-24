@@ -42,6 +42,10 @@ function showMainApp() {
   const storedLang = localStorage.getItem('ord-lang') || 'en';
   document.getElementById('settingsLang').value = storedLang;
   document.getElementById('langSelect').value = storedLang;
+
+  ord.getAutoStart().then(enabled => {
+    document.getElementById('autoStartToggle').checked = enabled;
+  });
 }
 
 function hideAll() {
@@ -169,6 +173,11 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
     await ord.setClipboard(text);
     showToast('Copied to clipboard!');
   }
+});
+
+document.getElementById('autoStartToggle').addEventListener('change', async (e) => {
+  await ord.setAutoStart(e.target.checked);
+  showToast(e.target.checked ? 'Auto-start enabled' : 'Auto-start disabled');
 });
 
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
