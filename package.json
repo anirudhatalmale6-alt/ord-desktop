@@ -1,6 +1,6 @@
 {
   "name": "ord-desktop",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Ord - AI Writing Assistant Desktop App",
   "main": "main.js",
   "scripts": {
@@ -15,8 +15,10 @@
     "files": [
       "main.js",
       "preload.js",
+      "preload-widget.js",
       "renderer.html",
       "renderer.js",
+      "floating-widget.html",
       "style.css",
       "tray-icon.png"
     ],

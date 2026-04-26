@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    .widget {
+      width: 44px;
+      height: 44px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .widget:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(37,99,235,0.4);
+    }
+
+    .widget.expanded {
+      width: 280px;
+      height: auto;
+      min-height: 44px;
+      border-radius: 16px;
+      -webkit-app-region: no-drag;
+    }
+
+    .widget-icon {
+      color: white;
+      font-size: 20px;
+      font-weight: 800;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .widget.expanded .widget-icon {
+      display: none;
+    }
+
+    .widget-content {
+      display: none;
+      width: 100%;
+      padding: 10px 14px;
+    }
+
+    .widget.expanded .widget-content {
+      display: block;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .widget-title {
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .widget-close {
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+    }
+
+    .widget-close:hover {
+      color: white;
+      background: rgba(255,255,255,0.2);
+    }
+
+    .widget-status {
+      color: rgba(255,255,255,0.9);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .widget-score {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .score-good { background: rgba(34,197,94,0.3); color: #86efac; }
+    .score-ok { background: rgba(234,179,8,0.3); color: #fde047; }
+    .score-bad { background: rgba(239,68,68,0.3); color: #fca5a5; }
+
+    .widget-issues {
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .widget-issue {
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      -webkit-app-region: no-drag;
+      transition: background 0.2s;
+    }
+
+    .widget-issue:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .issue-fix {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .issue-old {
+      color: #fca5a5;
+      text-decoration: line-through;
+    }
+
+    .issue-arrow {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .issue-new {
+      color: #86efac;
+      font-weight: 500;
+    }
+
+    .widget-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .widget-btn {
+      flex: 1;
+      padding: 6px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      background: transparent;
+      color: white;
+      font-size: 11px;
+      cursor: pointer;
+      text-align: center;
+      -webkit-app-region: no-drag;
+    }
+
+    .widget-btn:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .widget-btn.primary {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge.good {
+      background: #22c55e;
+    }
+
+    .badge.hidden {
+      display: none;
+    }
+
+    .loading-dots {
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+    }
+
+    .loading-dots::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget" id="widget" onclick="toggleExpand()">
+    <span class="widget-icon">Ö</span>
+    <span class="badge hidden" id="badge">0</span>
+
+    <div class="widget-content">
+      <div class="widget-header">
+        <span class="widget-title">Ord Grammar</span>
+        <span class="widget-close" onclick="event.stopPropagation(); collapse();">&times;</span>
+      </div>
+
+      <div id="widgetBody">
+        <div class="widget-status">
+          <span class="loading-dots" id="loadingText" style="display:none">Checking</span>
+          <span id="statusText">Select text & press Ctrl+Shift+G</span>
+        </div>
+        <div class="widget-issues" id="issuesList"></div>
+        <div class="widget-actions" id="actionsBar" style="display:none">
+          <button class="widget-btn primary" onclick="event.stopPropagation(); openMain();">Open Ord</button>
+          <button class="widget-btn" onclick="event.stopPropagation(); checkNow();">Re-check</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const widget = document.getElementById('widget');
+    let isExpanded = false;
+
+    function toggleExpand() {
+      if (isExpanded) return;
+      isExpanded = true;
+      widget.classList.add('expanded');
+      window.ord.resizeWidget(280, 300);
+    }
+
+    function collapse() {
+      isExpanded = false;
+      widget.classList.remove('expanded');
+      window.ord.resizeWidget(48, 48);
+    }
+
+    function openMain() {
+      window.ord.openMain();
+      collapse();
+    }
+
+    function checkNow() {
+      window.ord.checkFromWidget();
+    }
+
+    window.ord.onWidgetUpdate((data) => {
+      const badge = document.getElementById('badge');
+      const statusText = document.getElementById('statusText');
+      const loadingText = document.getElementById('loadingText');
+      const issuesList = document.getElementById('issuesList');
+      const actionsBar = document.getElementById('actionsBar');
+
+      if (data.loading) {
+        loadingText.style.display = 'inline';
+        statusText.style.display = 'none';
+        return;
+      }
+
+      loadingText.style.display = 'none';
+      statusText.style.display = 'inline';
+
+      if (data.error) {
+        statusText.textContent = data.error;
+        badge.classList.add('hidden');
+        return;
+      }
+
+      if (data.result) {
+        const result = data.result;
+        const issues = result.issues || [];
+        const score = result.score || 100;
+
+        if (issues.length === 0) {
+          badge.textContent = '✓';
+          badge.className = 'badge good';
+          statusText.innerHTML = '<span class="widget-score score-good">' + score + '/100</span> No issues found';
+          issuesList.innerHTML = '';
+        } else {
+          badge.textContent = issues.length;
+          badge.className = 'badge';
+          statusText.innerHTML = '<span class="widget-score ' +
+            (score >= 80 ? 'score-good' : score >= 50 ? 'score-ok' : 'score-bad') +
+            '">' + score + '/100</span> ' + issues.length + ' issue' + (issues.length > 1 ? 's' : '');
+
+          let html = '';
+          issues.slice(0, 5).forEach((issue, i) => {
+            html += '<div class="widget-issue" onclick="event.stopPropagation(); applyFix(' + i + ')">';
+            html += '<div class="issue-fix">';
+            html += '<span class="issue-old">' + esc(issue.original) + '</span>';
+            html += '<span class="issue-arrow">→</span>';
+            html += '<span class="issue-new">' + esc(issue.suggestion) + '</span>';
+            html += '</div></div>';
+          });
+          issuesList.innerHTML = html;
+
+          if (isExpanded) {
+            var totalH = 100 + Math.min(issues.length, 5) * 42;
+            window.ord.resizeWidget(280, Math.min(totalH + 60, 350));
+          }
+        }
+
+        actionsBar.style.display = 'flex';
+      }
+    });
+
+    function applyFix(index) {
+      window.ord.applyWidgetFix(index);
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      var d = document.createElement('span');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>

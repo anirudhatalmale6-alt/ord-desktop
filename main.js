@@ -5,8 +5,10 @@ const http = require('http');
 
 let tray = null;
 let mainWindow = null;
+let widgetWindow = null;
 let apiKey = '';
 let currentSession = null;
+let lastCheckResult = null;
 
 const API_BASE = 'https://skylarkmedia.se/ord/api';
 const SETTINGS_KEY = 'ord-settings';
@@ -35,6 +37,7 @@ app.whenReady().then(() => {
   }
   createTray();
   createWindow();
+  createWidgetWindow();
   registerShortcuts();
 
   app.on('activate', () => {
@@ -69,6 +72,7 @@ function createTray() {
     { label: 'Make Casual', click: () => triggerAction('casual') },
     { type: 'separator' },
     { label: 'Show Window', click: () => showWindow() },
+    { label: 'Show/Hide Widget', click: () => toggleWidget() },
     { label: 'Settings', click: () => showSettings() },
     { type: 'separator' },
     { label: 'Quit Ord', click: () => { app.quit(); } }
@@ -223,7 +227,10 @@ ipcMain.handle('set-clipboard', (_, text) => {
 ipcMain.handle('check-grammar', async (_, text, language) => {
   if (!apiKey) return { error: 'API key not set. Open Settings to configure.' };
   try {
-    return await apiRequest('/check', { text, language });
+    const result = await apiRequest('/check', { text, language });
+    lastCheckResult = result;
+    if (widgetWindow) widgetWindow.webContents.send('widget-update', { result: result.result || result });
+    return result;
   } catch (e) {
     return { error: e.message };
   }
@@ -366,5 +373,98 @@ ipcMain.handle('get-session', async () => {
   } catch {
     clearSession();
     return null;
+  }
+});
+
+function toggleWidget() {
+  if (widgetWindow) {
+    if (widgetWindow.isVisible()) {
+      widgetWindow.hide();
+    } else {
+      widgetWindow.show();
+    }
+  } else {
+    createWidgetWindow();
+  }
+}
+
+// Floating Widget
+function createWidgetWindow() {
+  const display = screen.getPrimaryDisplay();
+  const { width: screenW, height: screenH } = display.workAreaSize;
+
+  widgetWindow = new BrowserWindow({
+    width: 48,
+    height: 48,
+    x: screenW - 70,
+    y: screenH / 2 - 24,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    focusable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload-widget.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  widgetWindow.loadFile('floating-widget.html');
+  widgetWindow.setVisibleOnAllWorkspaces(true);
+
+  widgetWindow.on('closed', () => {
+    widgetWindow = null;
+  });
+}
+
+ipcMain.handle('resize-widget', (_, w, h) => {
+  if (widgetWindow) {
+    const [x, y] = widgetWindow.getPosition();
+    const display = screen.getPrimaryDisplay();
+    const { width: screenW } = display.workAreaSize;
+    const newX = Math.min(x, screenW - w - 10);
+    widgetWindow.setBounds({ x: newX, y, width: w, height: h });
+    widgetWindow.setFocusable(w > 48);
+  }
+  return true;
+});
+
+ipcMain.handle('open-main-from-widget', () => {
+  showWindow();
+  return true;
+});
+
+ipcMain.handle('check-from-widget', async () => {
+  await captureSelectedText();
+  const text = clipboard.readText();
+  if (!text || text.trim().length < 2 || !apiKey) return;
+
+  if (widgetWindow) widgetWindow.webContents.send('widget-update', { loading: true });
+
+  try {
+    const result = await apiRequest('/check', { text, language: 'en' });
+    lastCheckResult = result;
+    if (widgetWindow) widgetWindow.webContents.send('widget-update', { result: result.result || result });
+  } catch (e) {
+    if (widgetWindow) widgetWindow.webContents.send('widget-update', { error: e.message });
+  }
+});
+
+ipcMain.handle('apply-widget-fix', async (_, index) => {
+  if (!lastCheckResult) return;
+  const result = lastCheckResult.result || lastCheckResult;
+  const issues = result.issues || [];
+  if (index >= issues.length) return;
+
+  const issue = issues[index];
+  const text = clipboard.readText();
+  if (text && issue.original && issue.suggestion) {
+    const fixed = text.replace(issue.original, issue.suggestion);
+    clipboard.writeText(fixed);
+    issues.splice(index, 1);
+    if (widgetWindow) widgetWindow.webContents.send('widget-update', { result: { ...result, issues } });
   }
 });
